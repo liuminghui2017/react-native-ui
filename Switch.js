@@ -20,19 +20,19 @@ function Switch({
   const toggleAnim = useRef(new Animated.Value(checked ? 1 : 0)).current;
   const shadowAnim = useRef(new Animated.Value(0)).current;
   const loadingAnim = useRef(new Animated.Value(0)).current;
-  const isMountedRef = useRef(false);
+  const firstRenderFinishRef = useRef(false);
   const lastEmitStatus = useRef(active); // 记录上一次触发onChange的状态,如果与此次状态一致则不再触发onChange事件
 
   // 监听checked prop变化
   useEffect(() => {
-    if (isMountedRef.current && checked !== null) {
+    if (firstRenderFinishRef.current && checked !== null) {
       setActive(checked);
     }
   }, [checked]);
 
   // 状态变化动画控制
   useEffect(() => {
-    if (isMountedRef.current) {
+    if (firstRenderFinishRef.current) {
       Animated.timing(toggleAnim, {
         toValue: active ? 1 : 0,
         duration: 300,
@@ -45,6 +45,9 @@ function Switch({
           }
         }
       });
+    } else {
+      // 初始化状态时不需要动画
+      toggleAnim.setValue(active ? 1 : 0);
     }
   }, [active]);
 
@@ -67,7 +70,7 @@ function Switch({
   }, [loading]);
 
   useEffect(() => {
-    isMountedRef.current = true;
+    firstRenderFinishRef.current = true;
   }, []);
 
   // 切换状态
