@@ -22,11 +22,16 @@ function Switch({
   const loadingAnim = useRef(new Animated.Value(0)).current;
   const firstRenderFinishRef = useRef(false);
   const lastEmitStatus = useRef(active); // 记录上一次触发onChange的状态,如果与此次状态一致则不再触发onChange事件
+  const needToEmitChangeEvent = useRef(true);
 
   // 监听checked prop变化
   useEffect(() => {
     if (firstRenderFinishRef.current && checked !== null) {
-      setActive(checked);
+      needToEmitChangeEvent.current = false;
+      lastEmitStatus.current = checked;
+      if (active !== checked) {
+        setActive(checked);
+      }
     }
   }, [checked]);
 
@@ -39,7 +44,7 @@ function Switch({
         useNativeDriver: true,
       }).start(({ finished }) => {
         if (finished) {
-          if (lastEmitStatus.current !== active) {
+          if (needToEmitChangeEvent.current && lastEmitStatus.current !== active) {
             lastEmitStatus.current = active;
             onChange && onChange(active);
           }
@@ -75,6 +80,7 @@ function Switch({
 
   // 切换状态
   function toggle() {
+    needToEmitChangeEvent.current = true;
     setActive((prevState) => !prevState);
     shadowAnim.stopAnimation();
     shadowAnim.setValue(0);
