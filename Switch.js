@@ -15,6 +15,7 @@ function Switch({
   checkedChildren,
   unCheckedChildren,
   onChange,
+  sizeConfig,
 }) {
   const [active, setActive] = useState(checked === null ? defaultChecked : checked);
   const toggleAnim = useRef(new Animated.Value(checked ? 1 : 0)).current;
@@ -91,6 +92,11 @@ function Switch({
     }).start();
   }
 
+  function getPath() {
+    const { handlerSize } = sizeConfig;
+    return `M ${handlerSize / 2},3 Q ${handlerSize - 3},3 ${handlerSize - 3},${handlerSize / 2}`;
+  }
+
   return (
     <TouchableOpacity
       activeOpacity={1}
@@ -103,12 +109,13 @@ function Switch({
         opacity: disabled ? 0.7 : 1,
       }}
     >
-      <View style={styles.container}>
+      <View style={{ width: sizeConfig.width, height: sizeConfig.height }}>
         <View style={styles.shadowWrap}>
           <Animated.View
             style={[
               styles.shadow,
               {
+                borderRadius: sizeConfig.height / 2,
                 opacity: shadowAnim.interpolate({
                   inputRange: [0, 0.2, 1],
                   outputRange: [0, 1, 0],
@@ -129,6 +136,7 @@ function Switch({
             style={[
               styles.panel,
               {
+                borderRadius: sizeConfig.height / 2,
                 backgroundColor: unCheckedColor,
                 opacity: toggleAnim.interpolate({
                   inputRange: [0, 1],
@@ -142,6 +150,7 @@ function Switch({
             style={[
               styles.panel,
               {
+                borderRadius: sizeConfig.height / 2,
                 backgroundColor: checkedColor,
                 opacity: toggleAnim,
               },
@@ -159,15 +168,27 @@ function Switch({
 
           <Animated.View
             style={{
+              width: sizeConfig.height,
+              height: sizeConfig.height,
+              justifyContent: 'center',
+              alignItems: 'center',
               transform: [{
                 translateX: toggleAnim.interpolate({
                   inputRange: [0, 1],
-                  outputRange: [0, 20],
+                  outputRange: [0, sizeConfig.height],
                 }),
               }],
             }}
           >
-            <View style={styles.handler}>
+            <View style={[
+              styles.handler,
+              {
+                width: sizeConfig.handlerSize,
+                height: sizeConfig.handlerSize,
+                borderRadius: sizeConfig.handlerSize / 2,
+              },
+            ]}
+            >
               <Animated.View
                 style={{
                   opacity: loading ? 1 : 0,
@@ -180,11 +201,11 @@ function Switch({
                 }}
               >
                 <Svg
-                  width="16"
-                  height="16"
+                  width={sizeConfig.handlerSize}
+                  height={sizeConfig.handlerSize}
                 >
                   <Path
-                    d="M 8,3 Q 13,3 13,8"
+                    d={getPath()}
                     fill="none"
                     stroke={checkedColor}
                     strokeWidth="1"
@@ -209,6 +230,11 @@ Switch.propTypes = {
   checkedChildren: PropTypes.string,
   unCheckedChildren: PropTypes.string,
   onChange: PropTypes.func,
+  sizeConfig: PropTypes.shape({
+    width: PropTypes.number,
+    height: PropTypes.number,
+    handlerSize: PropTypes.number,
+  }),
 };
 
 Switch.defaultProps = {
@@ -221,6 +247,11 @@ Switch.defaultProps = {
   checkedChildren: '',
   unCheckedChildren: '',
   onChange: null,
+  sizeConfig: {
+    width: 40,
+    height: 20,
+    handlerSize: 16,
+  },
 };
 
 const styles = StyleSheet.create({
@@ -239,7 +270,6 @@ const styles = StyleSheet.create({
   shadow: {
     flex: 1,
     backgroundColor: '#eee',
-    borderRadius: 10,
   },
   panelWrap: {
     position: 'absolute',
@@ -255,7 +285,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    borderRadius: 10,
   },
   checkLabelPanel: {
     flexDirection: 'row',
@@ -273,11 +302,6 @@ const styles = StyleSheet.create({
   handler: {
     width: 16,
     height: 16,
-    margin: 2,
-    borderRadius: 8,
-    position: 'absolute',
-    top: 0,
-    left: 0,
     backgroundColor: '#ffffff',
   },
 });
